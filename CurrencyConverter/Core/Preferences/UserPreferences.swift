@@ -12,8 +12,7 @@ extension EnvironmentValues {
     }
 }
 
-@MainActor
-final class UserPreferences {
+final class UserPreferences: @unchecked Sendable {
     private let defaults: UserDefaults
 
     init(defaults: UserDefaults = .standard) {
