@@ -1,0 +1,54 @@
+# Сборка и unit-тесты на симуляторе. Публикация в App Store не используется.
+#
+# Важно:
+# - Нужна общая схема: CurrencyConverter.xcodeproj/xcshareddata/xcschemes/CurrencyConverter.xcscheme
+# - Deployment target в проекте должен входить в диапазон SDK на раннере (см. runner-images).
+#   Сейчас в .pbxproj выставлено 18.0 — совместимо с Xcode на GitHub-hosted macos-15.
+# - В проекте задан DEVELOPMENT_TEAM: на чужих форках CI может попросить подпись. Тогда для
+#   открытого репозитория обычно убирают team из Debug или настраивают секреты (отдельная тема).
+
+name: iOS CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      - name: List schemes
+        run: xcodebuild -list -project CurrencyConverter.xcodeproj
+
+      - name: Build (iOS Simulator)
+        run: |
+          set -eo pipefail
+          xcodebuild build \
+            -project CurrencyConverter.xcodeproj \
+            -scheme CurrencyConverter \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath DerivedData \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Unit tests
+        run: |
+          set -eo pipefail
+          xcodebuild test \
+            -project CurrencyConverter.xcodeproj \
+            -scheme CurrencyConverter \
+            -configuration Debug \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -derivedDataPath DerivedData \
+            -only-testing:CurrencyConverterTests \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO

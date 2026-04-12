@@ -7,7 +7,7 @@ struct CurrencyRate: Identifiable, Equatable, Hashable, Sendable {
     let name: String
     let rubPerUnit: Decimal
 
-    static let rubBaseline = CurrencyRate(code: "RUB", name: "Российский рубль", rubPerUnit: 1)
+    nonisolated static let rubBaseline = CurrencyRate(code: "RUB", name: "Российский рубль", rubPerUnit: 1)
 }
 
 enum ConvertSide: String, Sendable, Hashable {
