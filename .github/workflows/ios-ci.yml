@@ -2,9 +2,8 @@
 #
 # Важно:
 # - Нужна общая схема: CurrencyConverter.xcodeproj/xcshareddata/xcschemes/CurrencyConverter.xcscheme
-# - IPHONEOS_DEPLOYMENT_TARGET = 26 требует Xcode с iOS 26 SDK. На github.com/runner-images
-#   смотри, какой Xcode на macos-15/macos-latest; при ошибке SDK понизь deployment target
-#   в настройках проекта (например до 18) или используй self-hosted runner с нужным Xcode.
+# - Deployment target в проекте должен входить в диапазон SDK на раннере (см. runner-images).
+#   Сейчас в .pbxproj выставлено 18.0 — совместимо с Xcode на GitHub-hosted macos-15.
 # - В проекте задан DEVELOPMENT_TEAM: на чужих форках CI может попросить подпись. Тогда для
 #   открытого репозитория обычно убирают team из Debug или настраивают секреты (отдельная тема).
 
