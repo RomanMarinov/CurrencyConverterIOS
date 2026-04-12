@@ -56,25 +56,41 @@ struct CBRService: Sendable {
     }
 }
 
-// MARK: - Private DTOs
-
-private struct CBRDailyResponse: Decodable {
+private struct CBRDailyResponse: Sendable {
     let date: String
     let valute: [String: CBRValuteDTO]
+}
 
-    enum CodingKeys: String, CodingKey {
+extension CBRDailyResponse: Decodable {
+    nonisolated init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        date = try c.decode(String.self, forKey: .date)
+        valute = try c.decode([String: CBRValuteDTO].self, forKey: .valute)
+    }
+
+    private enum CodingKeys: String, CodingKey {
         case date = "Date"
         case valute = "Valute"
     }
 }
 
-private struct CBRValuteDTO: Decodable {
+private struct CBRValuteDTO: Sendable {
     let charCode: String
     let nominal: Int
     let name: String
     let value: Double
+}
 
-    enum CodingKeys: String, CodingKey {
+extension CBRValuteDTO: Decodable {
+    nonisolated init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        charCode = try c.decode(String.self, forKey: .charCode)
+        nominal = try c.decode(Int.self, forKey: .nominal)
+        name = try c.decode(String.self, forKey: .name)
+        value = try c.decode(Double.self, forKey: .value)
+    }
+
+    private enum CodingKeys: String, CodingKey {
         case charCode = "CharCode"
         case nominal = "Nominal"
         case name = "Name"
