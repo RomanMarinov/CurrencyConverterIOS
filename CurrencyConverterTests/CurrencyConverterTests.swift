@@ -18,12 +18,17 @@ final class CurrencyConverterTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+    func testConversionThroughRubBaseline() throws {
+        let rub = CurrencyRate.rubBaseline
+        let usd = CurrencyRate(code: "USD", name: "US Dollar", rubPerUnit: 90)
+        let eur = CurrencyRate(code: "EUR", name: "Euro", rubPerUnit: 100)
+        let map = [rub.code: rub, usd.code: usd, eur.code: eur]
+
+        let oneUSDinEUR = AmountConverter.convert(amount: 1, from: "USD", to: "EUR", ratesByCode: map)
+        XCTAssertEqual(NSDecimalNumber(decimal: oneUSDinEUR ?? 0).doubleValue, 0.9, accuracy: 0.000_001)
+
+        let tenEURinUSD = AmountConverter.convert(amount: 10, from: "EUR", to: "USD", ratesByCode: map)
+        XCTAssertEqual(NSDecimalNumber(decimal: tenEURinUSD ?? 0).doubleValue, 100 / 9, accuracy: 0.000_001)
     }
 
     func testPerformanceExample() throws {

@@ -9,9 +9,14 @@ import SwiftUI
 
 @main
 struct CurrencyConverterApp: App {
+    @State private var ratesStore = RatesStore()
+    @State private var preferences = UserPreferences()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootTabView()
+                .environment(ratesStore)
+                .environment(\.preferences, preferences)
         }
     }
 }

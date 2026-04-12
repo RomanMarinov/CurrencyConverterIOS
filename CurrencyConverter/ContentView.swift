@@ -7,15 +7,12 @@
 
 import SwiftUI
 
+/// Canvas / legacy entry; the app uses `RootTabView` from `CurrencyConverterApp`.
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        RootTabView()
+            .environment(RatesStore())
+            .environment(\.preferences, UserPreferences())
     }
 }
 
