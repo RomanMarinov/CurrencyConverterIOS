@@ -1,7 +1,8 @@
 import Foundation
 
-enum AmountConverter {
-    static func convert(
+/// Чистая доменная логика пересчёта суммы через курс к рублю (без UI и без сети).
+struct ConvertCurrencyAmountUseCase: Sendable {
+    func execute(
         amount: Decimal,
         from fromCode: String,
         to toCode: String,

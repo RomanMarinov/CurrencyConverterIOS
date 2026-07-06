@@ -22,18 +22,20 @@ struct ConvertView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(.systemGroupedBackground).ignoresSafeArea()
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
+                    .onTapGesture(perform: dismissKeyboard)
                 
-                VStack(spacing: 0) {
+                ScrollView {
                     VStack(alignment: .leading, spacing: 12) {
                         Text(store.displayDateLine())
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 12)
-                            .padding(.top, 8)
                         
                         VStack(spacing: 16) {
                             currencyAmountCard(code: leftCode, text: $leftAmount, side: .left) {
+                                dismissKeyboard()
                                 pickerTarget = .left
                             }
 
@@ -58,11 +60,11 @@ struct ConvertView: View {
                             .accessibilityLabel("Поменять валюты местами")
 
                             currencyAmountCard(code: rightCode, text: $rightAmount, side: .right) {
+                                dismissKeyboard()
                                 pickerTarget = .right
                             }
                         }
                         .padding(.horizontal, 12)
-                        .padding(.top, 4)
                         
                         if let err = store.lastError {
                             Text(err)
@@ -71,12 +73,14 @@ struct ConvertView: View {
                                 .padding(.horizontal, 12)
                                 .padding(.top, 8)
                         }
-                        
-                        Spacer(minLength: 0)
-                        
-                
                     }
+                    .padding(.top, 8)
+                    .padding(.bottom, 32)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
+                    .onTapGesture(perform: dismissKeyboard)
                 }
+                .scrollDismissesKeyboard(.interactively)
                 
                 if store.isLoading {
                     ProgressView()
@@ -136,6 +140,7 @@ struct ConvertView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        dismissKeyboard()
                         Task { await store.refresh() }
                     } label: {
                         Image(systemName: "arrow.triangle.2.circlepath")
@@ -145,6 +150,23 @@ struct ConvertView: View {
                     .accessibilityLabel("Обновить курсы")
                 }
             }
+            .safeAreaInset(edge: .bottom) {
+                if focusedSide != nil {
+                    HStack {
+                        Spacer()
+                        Button("Готово", action: dismissKeyboard)
+                            .font(.body.weight(.medium))
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 8)
+                            .background(Color(.systemBackground), in: Capsule())
+                            .shadow(color: .black.opacity(0.08), radius: 4, y: 2)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+                }
+            }
+            .animation(.default, value: focusedSide)
         }
         
     }
@@ -205,6 +227,10 @@ struct ConvertView: View {
             .autocorrectionDisabled()
     }
 
+    private func dismissKeyboard() {
+        focusedSide = nil
+    }
+
     private func swapCurrencies() {
         swap(&leftCode, &rightCode)
         swap(&leftAmount, &rightAmount)
@@ -242,12 +268,7 @@ struct ConvertView: View {
 
         let fromCode = side == .left ? leftCode : rightCode
         let toCode = side == .left ? rightCode : leftCode
-        guard let converted = AmountConverter.convert(
-            amount: amount,
-            from: fromCode,
-            to: toCode,
-            ratesByCode: store.ratesByCode
-        ) else { return }
+        guard let converted = store.convert(amount: amount, from: fromCode, to: toCode) else { return }
 
         isApplyingProgrammaticUpdate = true
         let text = DecimalFormatting.format(converted, fractionDigits: prefs.fractionDigits)

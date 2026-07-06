@@ -24,10 +24,11 @@ final class CurrencyConverterTests: XCTestCase {
         let eur = CurrencyRate(code: "EUR", name: "Euro", rubPerUnit: 100)
         let map = [rub.code: rub, usd.code: usd, eur.code: eur]
 
-        let oneUSDinEUR = AmountConverter.convert(amount: 1, from: "USD", to: "EUR", ratesByCode: map)
+        let useCase = ConvertCurrencyAmountUseCase()
+        let oneUSDinEUR = useCase.execute(amount: 1, from: "USD", to: "EUR", ratesByCode: map)
         XCTAssertEqual(NSDecimalNumber(decimal: oneUSDinEUR ?? 0).doubleValue, 0.9, accuracy: 0.000_001)
 
-        let tenEURinUSD = AmountConverter.convert(amount: 10, from: "EUR", to: "USD", ratesByCode: map)
+        let tenEURinUSD = useCase.execute(amount: 10, from: "EUR", to: "USD", ratesByCode: map)
         XCTAssertEqual(NSDecimalNumber(decimal: tenEURinUSD ?? 0).doubleValue, 100 / 9, accuracy: 0.000_001)
     }
 

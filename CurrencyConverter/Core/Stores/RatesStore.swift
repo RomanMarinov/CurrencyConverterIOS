@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 
+/// Слой приложения (presentation state): хранит UI-состояние курсов и вызывает доменные use cases.
 @Observable
 @MainActor
 final class RatesStore {
@@ -10,10 +11,15 @@ final class RatesStore {
     private(set) var isLoading = false
     private(set) var lastError: String?
 
-    private let service: CBRService
+    private let fetchExchangeRates: FetchExchangeRatesUseCase
+    private let convertCurrencyAmount: ConvertCurrencyAmountUseCase
 
-    init(service: CBRService = CBRService()) {
-        self.service = service
+    init(
+        fetchExchangeRates: FetchExchangeRatesUseCase,
+        convertCurrencyAmount: ConvertCurrencyAmountUseCase
+    ) {
+        self.fetchExchangeRates = fetchExchangeRates
+        self.convertCurrencyAmount = convertCurrencyAmount
     }
 
     func refresh() async {
@@ -21,13 +27,23 @@ final class RatesStore {
         lastError = nil
         defer { isLoading = false }
         do {
-            let payload = try await service.fetchDailyRates()
-            lastUpdatedISO = payload.dateISO8601
-            currencies = payload.currencies
-            ratesByCode = Dictionary(uniqueKeysWithValues: payload.currencies.map { ($0.code, $0) })
+            let snapshot = try await fetchExchangeRates.execute()
+            lastUpdatedISO = snapshot.dateISO8601
+            currencies = snapshot.currencies
+            ratesByCode = Dictionary(uniqueKeysWithValues: snapshot.currencies.map { ($0.code, $0) })
         } catch {
             lastError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
+    }
+
+    /// Делегирует доменному use case; View не импортирует логику конвертации напрямую.
+    func convert(amount: Decimal, from fromCode: String, to toCode: String) -> Decimal? {
+        convertCurrencyAmount.execute(
+            amount: amount,
+            from: fromCode,
+            to: toCode,
+            ratesByCode: ratesByCode
+        )
     }
 
     func displayDateLine(locale: Locale = .current) -> String {
