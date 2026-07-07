@@ -85,37 +85,11 @@ result    = rubAmount ÷ to.rubPerUnit
 
 Внешний API не требует ключа; для работы конвертера нужен доступ в интернет при обновлении курсов.
 
-## Структура проекта
-
-```text
-CurrencyConverter/
-├── CurrencyConverter/          # исходники приложения
-│   ├── Core/
-│   ├── UI/
-│   ├── Composition/
-│   └── Design/
-├── CurrencyConverterTests/     # unit-тесты
-├── CurrencyConverterUITests/   # UI-тесты
-└── .github/workflows/ios-ci.yml
-```
-
 ## Unit-тесты
 
 В проекте настроены unit-тесты доменной логики:
 
 - `testConversionThroughRubBaseline` — пересчёт через рубль (`ConvertCurrencyAmountUseCase`)
-
-Локальный запуск тестов:
-
-```bash
-xcodebuild test \
-  -project CurrencyConverter.xcodeproj \
-  -scheme CurrencyConverter \
-  -destination 'platform=iOS Simulator,name=iPhone 16' \
-  -only-testing:CurrencyConverterTests \
-  CODE_SIGN_IDENTITY="-" \
-  CODE_SIGNING_REQUIRED=NO
-```
 
 ## CI/CD
 
@@ -138,37 +112,3 @@ Workflow запускается автоматически при:
 
 [![iOS CI](https://github.com/RomanMarinov/CurrencyConverterIOS/actions/workflows/ios-ci.yml/badge.svg)](https://github.com/RomanMarinov/CurrencyConverterIOS/actions/workflows/ios-ci.yml)
 
-### Локальный запуск CI-команд
-
-```bash
-# Сборка
-xcodebuild build \
-  -project CurrencyConverter.xcodeproj \
-  -scheme CurrencyConverter \
-  -configuration Debug \
-  -destination 'generic/platform=iOS Simulator' \
-  CODE_SIGN_IDENTITY="-" \
-  CODE_SIGNING_REQUIRED=NO
-
-# Unit-тесты
-xcodebuild test \
-  -project CurrencyConverter.xcodeproj \
-  -scheme CurrencyConverter \
-  -configuration Debug \
-  -destination 'platform=iOS Simulator,name=iPhone 16' \
-  -only-testing:CurrencyConverterTests \
-  CODE_SIGN_IDENTITY="-" \
-  CODE_SIGNING_REQUIRED=NO
-```
-
-## Локальный запуск
-
-1. Откройте `CurrencyConverter.xcodeproj` в Xcode.
-2. Выберите схему **CurrencyConverter** и симулятор или устройство с iOS 18+.
-3. Запустите проект (**⌘R**).
-
-Для напоминаний на реальном устройстве разрешите уведомления при первом включении опции в **Настройках**.
-
-## Лицензия
-
-Проект распространяется без отдельного файла лицензии. При публикации на GitHub добавьте `LICENSE` по вашему выбору.
