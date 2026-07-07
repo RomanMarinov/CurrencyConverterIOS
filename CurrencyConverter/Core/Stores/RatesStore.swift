@@ -23,16 +23,24 @@ final class RatesStore {
     }
 
     func refresh() async {
+        print("[RatesStore] refresh started")
         isLoading = true
         lastError = nil
-        defer { isLoading = false }
+        defer {
+            isLoading = false
+            print("[RatesStore] refresh finished")
+        }
         do {
+            print("[RatesStore] calling fetch exchange rates use case")
             let snapshot = try await fetchExchangeRates.execute()
             lastUpdatedISO = snapshot.dateISO8601
             currencies = snapshot.currencies
             ratesByCode = Dictionary(uniqueKeysWithValues: snapshot.currencies.map { ($0.code, $0) })
+            print("[RatesStore] refresh succeeded with \(snapshot.currencies.count) currencies")
         } catch {
-            lastError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            lastError = message
+            print("[RatesStore] refresh failed: \(message)")
         }
     }
 

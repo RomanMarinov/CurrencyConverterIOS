@@ -27,18 +27,29 @@ struct CBRExchangeRatesRepository: ExchangeRatesRepository, Sendable {
 
     func fetchDailyRates() async throws -> ExchangeRatesSnapshot {
         guard let url = URL(string: "https://www.cbr-xml-daily.ru/daily_json.js") else {
+            print("[CBR] invalid URL")
             throw CBRDataError.invalidURL
         }
+
+        print("[CBR] starting request to \(url.absoluteString)")
         var request = URLRequest(url: url)
         request.timeoutInterval = 30
         let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw CBRDataError.badStatus(-1) }
-        guard (200 ... 299).contains(http.statusCode) else { throw CBRDataError.badStatus(http.statusCode) }
+        guard let http = response as? HTTPURLResponse else {
+            print("[CBR] missing HTTP response")
+            throw CBRDataError.badStatus(-1)
+        }
+        print("[CBR] received response with status \(http.statusCode)")
+        guard (200 ... 299).contains(http.statusCode) else {
+            print("[CBR] unexpected status \(http.statusCode)")
+            throw CBRDataError.badStatus(http.statusCode)
+        }
 
         let root: CBRDailyResponse
         do {
             root = try decoder.decode(CBRDailyResponse.self, from: data)
         } catch {
+            print("[CBR] decoding failed: \(error.localizedDescription)")
             throw CBRDataError.decodingFailed
         }
 
@@ -54,6 +65,7 @@ struct CBRExchangeRatesRepository: ExchangeRatesRepository, Sendable {
         }
 
         list.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        print("[CBR] parsed \(list.count) currencies from \(root.date)")
         return ExchangeRatesSnapshot(dateISO8601: root.date, currencies: list)
     }
 }
