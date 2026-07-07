@@ -99,7 +99,4 @@ Workflow запускается автоматически при:
 |-----------|--------|--------|
 | **iOS** | `macos-15` | Сборка Debug для симулятора (`xcodebuild build`), unit-тесты (`CurrencyConverterTests` на `iPhone 16`) |
 
-### Статус сборки
-
-[![iOS CI](https://github.com/RomanMarinov/CurrencyConverterIOS/actions/workflows/ios-ci.yml/badge.svg)](https://github.com/RomanMarinov/CurrencyConverterIOS/actions/workflows/ios-ci.yml)
 
