@@ -59,15 +59,6 @@
 
 `ввод в активном поле -> DecimalFormatting.parse -> ConvertCurrencyAmountUseCase -> пересчёт через RUB -> форматирование результата`
 
-Формула в домене:
-
-```text
-rubAmount = amount × from.rubPerUnit
-result    = rubAmount ÷ to.rubPerUnit
-```
-
-Активная сторона ввода (`ConvertSide`) определяет, какое поле является источником пересчёта.
-
 ### Напоминания
 
 `включение в Настройках -> запрос разрешения UNUserNotificationCenter -> UNCalendarNotificationTrigger (ежедневно)`
