@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+      "filename" : "icon_currency.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -12,6 +13,7 @@
           "value" : "dark"
         }
       ],
+      "filename" : "icon_currency 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -23,6 +25,7 @@
           "value" : "tinted"
         }
       ],
+      "filename" : "icon_currency 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
