@@ -100,6 +100,8 @@ Workflow запускается автоматически при:
 | **iOS** | `macos-15` | Сборка Debug для симулятора (`xcodebuild build`), unit-тесты (`CurrencyConverterTests` на `iPhone 16`) |
 
 #### Демо
+
 **iOS**
 
 https://github.com/user-attachments/assets/16c20d25-3e89-4c64-9787-b84d4d5d643d
+
