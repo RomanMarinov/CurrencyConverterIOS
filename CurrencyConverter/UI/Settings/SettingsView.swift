@@ -24,9 +24,12 @@ struct SettingsView: View {
                     Toggle("Ежедневное напоминание", isOn: $reminderOn)
                         .onChange(of: reminderOn) { _, on in
                             DailyReminderService.isEnabled = on
+                            if on {
+                                DailyReminderService.persistTime(from: reminderTime)
+                            }
                             Task {
                                 await DailyReminderService.reschedule()
-                                await MainActor.run { refreshReminderStatus() }
+                                await refreshReminderStatus()
                             }
                         }
 
@@ -37,12 +40,10 @@ struct SettingsView: View {
                     )
                     .disabled(!reminderOn)
                     .onChange(of: reminderTime) { _, newValue in
-                        let c = Calendar.current.dateComponents([.hour, .minute], from: newValue)
-                        if let h = c.hour { DailyReminderService.hour = h }
-                        if let m = c.minute { DailyReminderService.minute = m }
+                        DailyReminderService.persistTime(from: newValue)
                         Task {
                             await DailyReminderService.reschedule()
-                            await MainActor.run { refreshReminderStatus() }
+                            await refreshReminderStatus()
                         }
                     }
 
@@ -54,7 +55,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Напоминания")
                 } footer: {
-                    Text("Локальное уведомление: откройте приложение и обновите курсы. Фоновое автообновление iOS не гарантирует сеть в момент срабатывания.")
+                    Text("Локальное уведомление в выбранное время. Если приложение открыто — покажется баннер и курсы обновятся. В фоне iOS не гарантирует сеть без открытия приложения.")
                 }
 
                 Section("О приложении") {
@@ -71,7 +72,9 @@ struct SettingsView: View {
             fractionDigits = Double(prefs.fractionDigits)
             reminderOn = DailyReminderService.isEnabled
             reminderTime = Self.makeTime(hour: DailyReminderService.hour, minute: DailyReminderService.minute)
-            refreshReminderStatus()
+            Task {
+                await refreshReminderStatus()
+            }
         }
     }
 
@@ -81,12 +84,13 @@ struct SettingsView: View {
         return "\(v) (\(b))"
     }
 
-    private func refreshReminderStatus() {
+    @MainActor
+    private func refreshReminderStatus() async {
         guard reminderOn else {
             reminderStatus = ""
             return
         }
-        reminderStatus = "Напоминание: \(Self.timeString(hour: DailyReminderService.hour, minute: DailyReminderService.minute))"
+        reminderStatus = await DailyReminderService.statusMessage()
     }
 
     private static func makeTime(hour: Int, minute: Int) -> Date {
@@ -94,13 +98,5 @@ struct SettingsView: View {
         c.hour = hour
         c.minute = minute
         return Calendar.current.date(from: c) ?? Date()
-    }
-
-    private static func timeString(hour: Int, minute: Int) -> String {
-        let d = makeTime(hour: hour, minute: minute)
-        let f = DateFormatter()
-        f.timeStyle = .short
-        f.dateStyle = .none
-        return f.string(from: d)
     }
 }

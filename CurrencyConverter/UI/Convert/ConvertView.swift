@@ -121,7 +121,7 @@ struct ConvertView: View {
             .sheet(item: $pickerTarget) { target in
                 CurrencyPickerSheet(
                     currencies: store.currencies,
-                    title: target == .left ? "Валюта слева" : "Валюта справа"
+                    title: target == .left ? "Валюта сверху" : "Валюта снизу"
                 ) { picked in
                     switch target {
                     case .left:
@@ -249,7 +249,7 @@ struct ConvertView: View {
         leftAmount = prefs.leftAmountText
         rightAmount = prefs.rightAmountText
         if store.currencies.isEmpty {
-            await store.refresh()
+            await store.refresh(notifyOnSuccess: false)
         }
         recalculate(from: activeSide, raw: activeSide == .left ? leftAmount : rightAmount)
     }

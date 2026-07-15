@@ -10,6 +10,7 @@ final class RatesStore {
     private(set) var lastUpdatedISO: String?
     private(set) var isLoading = false
     private(set) var lastError: String?
+    private(set) var successToastNonce = 0
 
     private let fetchExchangeRates: FetchExchangeRatesUseCase
     private let convertCurrencyAmount: ConvertCurrencyAmountUseCase
@@ -22,7 +23,7 @@ final class RatesStore {
         self.convertCurrencyAmount = convertCurrencyAmount
     }
 
-    func refresh() async {
+    func refresh(notifyOnSuccess: Bool = true) async {
         print("[RatesStore] refresh started")
         isLoading = true
         lastError = nil
@@ -37,6 +38,9 @@ final class RatesStore {
             currencies = snapshot.currencies
             ratesByCode = Dictionary(uniqueKeysWithValues: snapshot.currencies.map { ($0.code, $0) })
             print("[RatesStore] refresh succeeded with \(snapshot.currencies.count) currencies")
+            if notifyOnSuccess {
+                successToastNonce += 1
+            }
         } catch {
             let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             lastError = message
@@ -56,18 +60,30 @@ final class RatesStore {
 
     func displayDateLine(locale: Locale = .current) -> String {
         guard let raw = lastUpdatedISO else { return "" }
-        let prefix = String(raw.prefix(10))
-        if let date = Self.isoDateFormatter.date(from: prefix) {
-            let df = DateFormatter()
-            df.locale = locale
-            df.dateStyle = .medium
-            df.timeStyle = .none
-            return "Данные за \(df.string(from: date))"
+
+        let date: Date
+        if let parsed = Self.isoDateTimeFormatter.date(from: raw) {
+            date = parsed
+        } else if let parsed = Self.isoDateOnlyFormatter.date(from: String(raw.prefix(10))) {
+            date = parsed
+        } else {
+            return "Данные за \(raw)"
         }
-        return "Данные за \(prefix)"
+
+        let df = DateFormatter()
+        df.locale = locale
+        df.dateStyle = .medium
+        df.timeStyle = .short
+        return "Данные за \(df.string(from: date))"
     }
 
-    private static let isoDateFormatter: ISO8601DateFormatter = {
+    private static let isoDateTimeFormatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime]
+        return f
+    }()
+
+    private static let isoDateOnlyFormatter: ISO8601DateFormatter = {
         let f = ISO8601DateFormatter()
         f.formatOptions = [.withFullDate, .withDashSeparatorInDate]
         return f
