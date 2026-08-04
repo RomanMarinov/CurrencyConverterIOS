@@ -1,6 +1,7 @@
 import Foundation
 
-enum CBRServiceError: Error, LocalizedError {
+/// Ошибки слоя данных (сеть/парсинг). Домен их не импортирует — при необходимости маппятся в presentation.
+enum CBRDataError: Error, LocalizedError {
     case invalidURL
     case badStatus(Int)
     case decodingFailed
@@ -14,32 +15,44 @@ enum CBRServiceError: Error, LocalizedError {
     }
 }
 
-struct CBRRatesPayload: Sendable {
-    let dateISO8601: String
-    let currencies: [CurrencyRate]
-}
-
-
-struct CBRService: Sendable {
+/// Реализация `ExchangeRatesRepository`: API daily_json ЦБ РФ.
+struct CBRExchangeRatesRepository: ExchangeRatesRepository, Sendable {
     private let session: URLSession
     private let decoder: JSONDecoder
 
-    nonisolated init(session: URLSession = .shared) {
+    init(session: URLSession = .shared) {
         self.session = session
         self.decoder = JSONDecoder()
     }
 
-    nonisolated func fetchDailyRates() async throws -> CBRRatesPayload {
+    func fetchDailyRates() async throws -> ExchangeRatesSnapshot {
         guard let url = URL(string: "https://www.cbr-xml-daily.ru/daily_json.js") else {
-            throw CBRServiceError.invalidURL
+            print("[CBR] invalid URL")
+            throw CBRDataError.invalidURL
         }
+
+        print("[CBR] starting request to \(url.absoluteString)")
         var request = URLRequest(url: url)
         request.timeoutInterval = 30
         let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse else { throw CBRServiceError.badStatus(-1) }
-        guard (200 ... 299).contains(http.statusCode) else { throw CBRServiceError.badStatus(http.statusCode) }
+        guard let http = response as? HTTPURLResponse else {
+            print("[CBR] missing HTTP response")
+            throw CBRDataError.badStatus(-1)
+        }
+        print("[CBR] received response with status \(http.statusCode)")
+        guard (200 ... 299).contains(http.statusCode) else {
+            print("[CBR] unexpected status \(http.statusCode)")
+            throw CBRDataError.badStatus(http.statusCode)
+        }
 
-        let root = try decoder.decode(CBRDailyResponse.self, from: data)
+        let root: CBRDailyResponse
+        do {
+            root = try decoder.decode(CBRDailyResponse.self, from: data)
+        } catch {
+            print("[CBR] decoding failed: \(error.localizedDescription)")
+            throw CBRDataError.decodingFailed
+        }
+
         var list: [CurrencyRate] = [.rubBaseline]
         list.reserveCapacity(root.valute.count + 1)
 
@@ -52,9 +65,12 @@ struct CBRService: Sendable {
         }
 
         list.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-        return CBRRatesPayload(dateISO8601: root.date, currencies: list)
+        print("[CBR] parsed \(list.count) currencies from \(root.date)")
+        return ExchangeRatesSnapshot(dateISO8601: root.date, currencies: list)
     }
 }
+
+// MARK: - DTO (только Data-слой, не домен)
 
 private struct CBRDailyResponse: Sendable {
     let date: String

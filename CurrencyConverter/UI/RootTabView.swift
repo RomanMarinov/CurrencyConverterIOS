@@ -19,5 +19,6 @@ struct RootTabView: View {
                 }
         }
         .tint(AppTheme.accent)
+        .ratesRefreshToast()
     }
 }

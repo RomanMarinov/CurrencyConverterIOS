@@ -11,7 +11,7 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         RootTabView()
-            .environment(RatesStore())
+            .environment(AppCompositionRoot.makeRatesStore())
             .environment(\.preferences, UserPreferences())
     }
 }

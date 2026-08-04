@@ -59,7 +59,7 @@ struct RatesListView: View {
         }
         .task {
             if store.currencies.isEmpty {
-                await store.refresh()
+                await store.refresh(notifyOnSuccess: false)
             }
         }
     }

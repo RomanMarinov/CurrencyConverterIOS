@@ -9,8 +9,3 @@ struct CurrencyRate: Identifiable, Equatable, Hashable, Sendable {
 
     nonisolated static let rubBaseline = CurrencyRate(code: "RUB", name: "Российский рубль", rubPerUnit: 1)
 }
-
-enum ConvertSide: String, Sendable, Hashable {
-    case left
-    case right
-}

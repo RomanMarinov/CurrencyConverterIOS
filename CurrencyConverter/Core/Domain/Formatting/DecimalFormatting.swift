@@ -17,6 +17,4 @@ enum DecimalFormatting {
         nf.usesGroupingSeparator = false
         return nf.string(from: value as NSDecimalNumber) ?? ""
     }
-    
-    ////
 }
